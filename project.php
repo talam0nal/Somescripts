@@ -1,5 +1,5 @@
 <?php
-
+//Добавлен комментарий на второй строке
 namespace app;
 
 use app\models\page;
