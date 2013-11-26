@@ -1,0 +1,274 @@
+{% extends 'acp_view.html' %}
+{% block head %}
+<script src="../video_app.js" type="text/javascript"></script>
+<script type="text/javascript">
+jQuery(document).ready(function() {
+  jQuery('#syndicatedUploadDiv input[type="submit"]').live('click',function(event) {
+    if(jQuery('#syndicatedUploadDiv input[type="text"]').eq(0).val().length < 2) {
+      jQuery('#syndicatedUploadDiv input[type="text"]').eq(0).addClass('red');
+    event.preventDefault();
+    }
+
+  });
+
+  jQuery('#syndicatedUploadDiv input[type="text"]').live('keydown',function(event) {
+    if(jQuery(this).val().length > 2) {
+     jQuery(this).removeClass('red');
+    }
+  });
+
+  jQuery('#editForm input[type="submit"]').live('click',function(event) {
+    if(jQuery('#editForm input[type="text"]').eq(0).val().length < 2) {
+      jQuery('#editForm input[type="text"]').eq(0).addClass('red');
+    event.preventDefault();
+    }
+    jQuery('#searchResultsVideoColumn').hide();
+
+  });
+
+  jQuery('#editForm input[type="text"]').live('keydown',function(event) {
+    if(jQuery(this).val().length > 2) {
+     jQuery(this).removeClass('red');
+    }
+  });
+
+  
+  jQuery('body').live('hover',function() {
+    if ( jQuery('#videoResultList img[src$="0.jpg"]').eq(0).width() == '120' ) {
+      jQuery('#videoResultList img[src$="0.jpg"]').eq(0).attr('src', '../processing.jpg');
+    }
+  });
+
+  jQuery('#startupload').live('submit',function() {
+    jQuery('body, html').css('overflow-y', 'hidden !important');
+    jQuery('.overlay').fadeIn('500');
+  });
+
+  jQuery('#editForm').live('submit',function() {
+    jQuery('.overlay-edit').fadeIn('500');
+  });
+
+  jQuery('.bottom-button.edit').live('click',function() {
+    jQuery('#searchResultsVideoColumn').fadeIn('500');
+  });
+
+  jQuery('#cancel').live('click',function(event) {
+    jQuery('#searchResultsVideoColumn').fadeOut('500');
+    event.preventDefault();  
+  });
+
+//Выпиливаем с базы и ютуба
+jQuery('#deletevideo').live('click',function(event) {
+
+	var id = jQuery(this).attr('youtube');
+	ytVideoApp.confirmDeletion(id);
+	event.preventDefault();
+	return false;
+});
+
+});
+</script>
+
+<style>
+
+#editForm {
+width: 560px;
+position: relative;
+top: -13px;
+}
+
+.red {
+  -webkit-transition: all 0.30s ease-in-out;
+  background: rgba(189, 91, 91, 0.68) !important;
+}
+#syndicatedUploadDiv {
+padding: 50px;
+}
+
+.acp-inner-content {
+  padding: 15px;
+  border-top-color: #f8f8f8!important;
+  border-radius: 15px;
+  border: 0px;
+  border-bottom: 2px solid #adadad!important;
+  background-image: -webkit-linear-gradient(bottom, #dadada 1%, #d0d0d0 10%, #e8e8e8 99%);
+  background-image: -moz-linear-gradient(bottom, #dadada 1%, #d0d0d0 10%, #e8e8e8 99%);  
+}
+#syndicatedUploadDiv input.header, #syndicatedUploadDiv textarea.header {
+	padding: 0px 10px;
+	font-style: italic;
+	font-size: 13px;
+	height: 30px;
+	width: 50%!important;
+	background-image: -webkit-linear-gradient(bottom, #f8f8f8 1%, #f0f0f0 99%);
+	background-image: -moz-linear-gradient(bottom, #f8f8f8 1%, #f0f0f0 99%);
+	border-radius: 4px;
+	color: #000;
+	font-family: Trebuchet MS, Helvetica, sans-serif;
+	border-bottom: 1px solid #fff;
+	border-top: 1px solid rgba(0,0,0,0.25);
+}
+
+#syndicatedUploadDiv textarea.header {
+  height:100px;
+  resize:none;
+}
+
+#syndicatedUploadDiv .input-title {
+margin-top: 10px;
+text-transform: uppercase;
+font-weight: bold;
+color: #4a4a4a;
+margin-bottom: 5px;
+font-size: 14px;
+font-family: Trebuchet MS, Helvetica, sans-serif;
+}
+
+a.clink {
+  color: black !important;
+  font-size: 2em;
+}
+
+.overlay, .overlay-edit, .overlay-delete {
+  position: fixed;
+  top:0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 3em;
+  color: white;
+  padding-top: 15%;
+  text-align: center;
+}
+
+#searchResultsVideoColumn {
+	color: black;
+}
+
+#content_table {
+	margin: 10px !important;
+}
+
+td {
+	padding: 0 !important;
+}
+
+h1 {
+	display: none;
+}
+
+
+
+.tochannel {
+	display: block;
+	position: absolute;
+	top:62px;
+	right: 30px;
+}
+
+a.tochannel img {
+	width: 64px;
+	height: 64px;
+	opacity: 0.8;
+}
+
+a.tochannel img:hover {
+	opacity: 1;
+}
+</style>
+<script>
+
+jQuery(document).ready(function() {
+	ytVideoApp.listVideos('search_owner', '', '1');
+	ytVideoApp.presentMetaDataEditForm('{{ object.edit_data.title }}', '{{ object.edit_data.description }}', 'Autos', '{{ object.edit_data.tags }}', '{{ object.edit_data.youTubeId }}');	
+});
+
+
+</script>
+<script type="text/javascript">
+  jQuery(function(){
+
+    // ЗАГРУЗКА COVER
+    jQuery("input[type='file']").ajaxupload({
+      src:"{{object.MM_URL~'&action=set_cover&id='~object.id}}",
+      load: function(data1){
+        var data=jQuery.parseJSON(data1);
+        jQuery("#cover").attr("src",data.cover_path).show();
+        jQuery("#original_image").val(data.cover_path);
+        jQuery("#delete_cover").show();
+        jQuery("#crop").show();
+        jQuery("#cover_name").attr("value",data.cover_crop);
+        jQuery("#canvas_container").empty();
+        if (typeOf(obj)!='undefined') delete obj;
+      },
+      access_type: ['jpg','jpeg','png','gif','JPG','JPEG','PNG','GIF']
+    });
+    jQuery("#date").datepicker({
+      dateFormat: 'dd-mm-yy'
+    });
+    // УДАЛЕНИЕ COVER
+    jQuery("#delete_cover").click(function(){
+      jQuery("#message").acp_post('{{ object.MM_URL|raw }}&action=delete_cover',{'id':'{{ object.id }}'},function(data){
+        if (data=='1') {
+          jQuery("#cover_name").val("");
+          jQuery("#cover").attr("src","").hide();
+          jQuery("#delete_cover").hide();
+          jQuery("#crop").hide();
+        }
+        return false;
+      });
+    });
+  }); 
+</script>
+{% endblock %}
+
+
+{% block buttons %}
+
+{% if object.edit_data.isUploaded != '1' %}
+<script>
+jQuery(document).ready(function() {
+  jQuery('input[name="newVideoTitle"]').after('<p><div class="input-title">Ссылка на видео</div><input type="text" class="header" name="newID" value="{{ object.edit_data.youTubeId }}">');
+});
+</script>
+{% else %}
+<script>
+jQuery(document).ready(function() {
+  jQuery('input[name="newVideoTitle"]').after('<input type="hidden" class="header" name="newID" value="{{ object.edit_data.youTubeId }}">');
+});
+</script>
+
+{% endif %}
+
+
+<a href="//youtube.com/channel/UCixj68KM4vuVFJeaOyhH2Fg/videos" target="_blank" class="tochannel" title="Перейти на канал YouTube">
+	<img src="youtube-icon.png">
+</a>
+
+<div class="overlay-edit" style="display:none;">
+	Сохранение настроек...<p><p><br />
+	<img src="../loading.GIF">
+</div>
+
+
+
+<div id="searchResults" class="acp-inner-content">
+	<div id="searchResultsListColumn">
+		<div id="searchResultsVideoColumn">
+			<div id="videoPlayer"></div>
+
+		</div>
+
+
+<iframe width="560" height="298" src="//www.youtube.com/embed/{{ object.edit_data.youTubeId }}" frameborder="0" allowfullscreen></iframe>
+	</div>
+</div>
+
+{% endblock %}
+
+
+{% block inner_content %}
+  {% import "macros.html" as macros %}
+  {{ macros.list_ul(object.view_data, object.M_URL, object.MM_URL, object.path, object.ss, object.cover, object.fields, USER_STATUS) }}
+{% endblock %}
