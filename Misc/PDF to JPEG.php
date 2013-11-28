@@ -1,4 +1,5 @@
 <?php 
+	//Проверяем, доступен ли на сервере Imagick
 	$classes = get_declared_classes();
 	if ( in_array('Imagick', $classes) )  {
 		$this->imagickInstalled=true;
