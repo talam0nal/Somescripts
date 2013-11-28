@@ -1,4 +1,12 @@
 <?php 
+	$classes = get_declared_classes();
+	if ( in_array('Imagick', $classes) )  {
+		$this->imagickInstalled=true;
+	} else {
+		$this->imagickInstalled=false;
+		exit();
+	}
+		
 	function addHerald($parent_id, $randomname, $rewriteRule) {
 		//Если функция запущена с параметром $rewriteRule со значением true, то перезаписываем путь
 		//Это сделано, чтобы при цепочке вызовов функций deleteHerald+addHerald не происходило лишней конкатенации строк
@@ -34,51 +42,42 @@
 			//Устанавливаем настройки разрешения и качества
 			$img = new imagick;
 			$img->setCompressionQuality($this->compressionQuality);
+
+			//Устанавливаем разрешение картинки по высоте и ширине (не путать с размером изображения)
 			$img->setResolution($this->resolutionW, $this->resolutionH);
 			
-
 			//Читаем нужную страницу pdf файла
 			$img->readImage($pdf_file."[$i]");
-			
+
+			//Ширина pdf-изображения
+			$imageWidth = $img->getImageWidth();
+
+			//Высота pdf-изображения
+			$imageHeight = $img->getImageHeight();
+
+			//Определяем ориентацию изображения
+			$ratio = $imageWidth / $imageHeight;
+			if ($ratio > 1) {
+				$horizontal = true;
+			} else {
+				$horizontal = false;
+			}
+
 			//Устанавливаем настройки цвета
 			$img->setImageMatte(true);
 			$img->setImageMatteColor('white');
 			$img->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+
+			//Устанавливаем image gravity
+			$img->setGravity(Imagick::GRAVITY_CENTER);
 			
-			/*
-			//http://www.php.net/manual/en/imagick.constants.php#imagick.constants.colorspace
-			http://php.net/manual/en/imagick.setimagecolorspace.php
-			COLORSPACE constants
-			12 - всё инвертировно
-
-			imagick::COLORSPACE_UNDEFINED (integer) Всё чёрное
-			imagick::COLORSPACE_RGB (integer) Чёрное всё
-			imagick::COLORSPACE_GRAY (integer)
-			imagick::COLORSPACE_TRANSPARENT (integer) чёрное всё
-			imagick::COLORSPACE_OHTA (integer)
-			imagick::COLORSPACE_LAB (integer) Синее всё
-			imagick::COLORSPACE_XYZ (integer) Тётка на картинке стала рыжей
-			imagick::COLORSPACE_YCBCR (integer) Зелёное всё
-			imagick::COLORSPACE_YCC (integer)
-			imagick::COLORSPACE_YIQ (integer)
-			imagick::COLORSPACE_YPBPR (integer)
-			imagick::COLORSPACE_YUV (integer)
-			imagick::COLORSPACE_CMYK (integer) Совсем не подходит
-			imagick::COLORSPACE_SRGB (integer) Получается инверсия белого цвета
-			imagick::COLORSPACE_HSB (integer) Розовое всё
-			imagick::COLORSPACE_HSL (integer) Чёрные цвета
-			imagick::COLORSPACE_HWB (integer)
-			imagick::COLORSPACE_REC601LUMA (integer)
-			imagick::COLORSPACE_REC709LUMA (integer)
-			imagick::COLORSPACE_LOG (integer)
-			imagick::COLORSPACE_CMY (integer) Инверсия всех цветов
-			*/
-
 			//Циклом пробегаемся по настройке конфига "thumbs"
 			foreach ($this->thumbs as $key => $value) {
-				//Резайсим
-				$img->adaptiveResizeImage($value['w'], $value['h']);
-				
+				if(!$value['prefix']=='') { //Если есть префикс, следовательно это тумб, следовательно кропаем и ресайзим
+					$img->cropThumbnailImage ( $value['w'] , $value['h'] );	
+				} else { //Если префикса нет, значит это оригинал и подставляем ratio из конфига
+					$img->adaptiveResizeImage($imageWidth*$value['ratio'], $imageHeight*$value['ratio']);
+				}
 				//Пишем c префиксом из конфига, с постфиксом номера страницы
 				$img->writeImage(ROOT_DIR.$this->path.$value['prefix'].$randomname.'_'.$i.'.jpg');
 			}
@@ -93,13 +92,17 @@
 		$filename=$this->registry->db->get_single('SELECT file FROM '.$this->name.' WHERE id='.$parent_id);
 		}
 
+		if($filename == '') {
+			$filename="something.pfd";
+		}
+
 		//Посчитав количество страниц удаляем jpeg файлы и их записи в базе
 		if(file_exists(ROOT_DIR.$this->path.$filename))
 		{
 			$countPdfPages = new imagick(ROOT_DIR.$this->path.$filename);
 			for ($i=0; $i < $countPdfPages->getNumberImages(); $i++) {
 				foreach ($this->thumbs as $key => $value) {
-					unlink(ROOT_DIR.$this->path.$value['prefix'].$filename.'_'.$i.'.jpg');
+					@unlink(ROOT_DIR.$this->path.$value['prefix'].$filename.'_'.$i.'.jpg');
 				}
 			}
 
