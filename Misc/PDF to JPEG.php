@@ -31,7 +31,7 @@
 		//Перемещаем загруженный файл
 		move_uploaded_file($_FILES['file']['tmp_name'],ROOT_DIR.$this->path.$randomname);
 
-		//Укащываем imagick'у какой pdf файл нужно конвертировать
+		//Указываем imagick'у какой pdf файл нужно конвертировать
 		$pdf_file = ROOT_DIR.$this->path.$randomname;
 
 		//Получаем количество страниц pdf файла
@@ -47,6 +47,10 @@
 			//Устанавливаем разрешение картинки по высоте и ширине (не путать с размером изображения)
 			$img->setResolution($this->resolutionW, $this->resolutionH);
 			
+			//Определяем коэфициэент изменения resoltion. Обычно изначальное качество - это 72px/inch
+			$resolutionRatio = $this->resolutionW/72;
+			//echo 'Коэфициент изменения resolution:'.$resolutionRatio.'<p>';
+
 			//Читаем нужную страницу pdf файла
 			$img->readImage($pdf_file."[$i]");
 
@@ -55,19 +59,51 @@
 
 			//Высота pdf-изображения
 			$imageHeight = $img->getImageHeight();
+			//print_r('<p>Размер изображения после изменения resolution на значение 300 px/inch: '.$imageHeight.'x'.$imageWidth.'<p>');
+
+			//Определяем изначальный размер изображения
+			$initialImageSizeW=$imageWidth/$resolutionRatio;
+			$initialImageSizeH=$imageHeight/$resolutionRatio;
+			//echo "Изначальный размер изображения: ".$initialImageSizeW."x".$initialImageSizeH."<p>";
+
+			//Устанавливаем максимальный размер изображения, точнее максимальный размер меньшей стороны изображения
+			$imageSizeDelimiter = 2000; // (in pixels)
+
+			//Устанавливаем константу, которая будет увеличивать изображения от оригинального размера
+			$enhanceRatio = 1;
 
 			//Определяем ориентацию изображения
-			$ratio = $imageWidth / $imageHeight;
-			if ($ratio > 1) {
-				$horizontal = true;
-			} else {
-				$horizontal = false;
+			$imageOrientation='';
+			$imageAspectRatio = $imageWidth / $imageHeight;
+			if ($imageAspectRatio > 1) {
+				$imageOrientation = 'vertical';
+			}
+
+			//Если у нас одна из сторон изображения меньше чем 1200 тогда мы вообще ничего не делаем
+			if ( ($initialImageSizeH < $imageSizeDelimiter) || ($initialImageSizeW < $imageSizeDelimiter) ) { 
+				
+			} else { 
+
+			}
+
+			//Еще кое что 
+			if (!$imageOrientation == 'vertical') { //Если изображение вертикальное это означает, что меньшая сторона это ширина
+				//Определяем размер большей стороны, то есть высоты
+				$m=$imageSizeDelimiter/$initialImageSizeW;
+				$newHeight = $m * $initialImageSizeH;
+				$newWidth = $imageSizeDelimiter;
+				echo "First";
+			} else { //Если изображение горизонтальное это ознчает, что меньшая сторона это высота
+				$m=$imageSizeDelimiter/$initialImageSizeH; //вот здесь изображение горизолнтальное и здесь мы что то делам не так
+				$newWidth = $m * $initialImageSizeW;
+				$newHeight = $imageSizeDelimiter;
+				echo "2nd";
 			}
 
 			//Устанавливаем настройки цвета
 			$img->setImageMatte(true);
 			$img->setImageMatteColor('white');
-			$img->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE);
+			$img->setImageAlphaChannel(Imagick::ALPHACHANNEL_OPAQUE); 
 
 			//Устанавливаем image gravity
 			$img->setGravity(Imagick::GRAVITY_CENTER);
@@ -77,7 +113,23 @@
 				if(!$value['prefix']=='') { //Если есть префикс, следовательно это тумб, следовательно кропаем и ресайзим
 					$img->cropThumbnailImage ( $value['w'] , $value['h'] );	
 				} else { //Если префикса нет, значит это оригинал и подставляем ratio из конфига
-					$img->adaptiveResizeImage($imageWidth*$value['ratio'], $imageHeight*$value['ratio']);
+					//Но если же высота и ширина картинки меньше 1 200 пикселей, то коэфициент ратио будет x1
+					if ( ($initialImageSizeH < $imageSizeDelimiter) || ($initialImageSizeW < $imageSizeDelimiter) ) { //На самом деле изначальные параметры 1 200px, но мы всё домножаем на 4,166 за счет резолюшина 300
+						$value['ratio']=1*$enhanceRatio; 
+					} else { 
+	
+					}
+
+
+					$img->adaptiveResizeImage($newWidth,  $newHeight );
+
+					/*
+					if ( $imageOrientation == 'vertical') {
+						$img->adaptiveResizeImage( $newHeight, $newWidth);
+					} else {
+						$img->adaptiveResizeImage( $newWidth, $newHeight );
+					}
+					*/
 				}
 				//Пишем c префиксом из конфига, с постфиксом номера страницы
 				$img->writeImage(ROOT_DIR.$this->path.$value['prefix'].$randomname.'_'.$i.'.jpg');
