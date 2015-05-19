@@ -1,0 +1,11 @@
+RewriteCond %{HTTP_HOST} !^svn-video\.ru$
+RewriteRule ^(.*)$ "http://svn-video.ru/$1" [R=301,L]
+
+    # Redirect Trailing Slashes...
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    #RewriteRule ^ index.php [L]
+    RewriteRule . /index.php [L]
