@@ -1,0 +1,91 @@
+ul.menu
+{
+	li.title
+	{
+		height:50px;
+		width:100px;
+		background-color:red;
+		display:block;
+		float:left;
+		transition: all .3s ease-in;
+		
+		ul.submenu
+		{
+			padding-left:0;
+			margin-top:0;
+			li
+			{
+				&:first-of-type //сли убрать , то получится клевая анимация
+				{
+					margin-top:30px;
+				}
+				
+				display:none; //block;
+				padding-left:0px;
+				margin-top:0;
+				
+				ul
+				{
+					display: none;//inline-block; //чтобы список отображался на уровне подзаголовка
+					position:absolute;
+					margin-left:25px;
+					padding-left:0;
+					//background-color:red;
+					li
+					{					
+						margin-top:0px;
+						&:first-of-type
+						{
+							top:-20px;
+							margin-top:0px !important;
+						}
+					}
+				}
+			}
+			
+		}
+		
+		&:hover
+		{
+			//background-color:#EFDECD;
+			transition: all .3s ease-in;
+			
+			ul.submenu
+			{
+				padding-left:0;
+				
+				li
+				{
+					&:first-of-type
+					{
+						margin-top:30px;
+					}
+					display:block;
+					padding-left:0px;
+					margin-top:0;		
+					//background-color:#9966CC;
+					transition: all .3s ease-in;
+					
+					&:hover
+					{
+						ul
+						{
+							display:inline-block;
+							position:absolute;
+							margin-left:25px;
+							padding-left:0;
+							//background-color:red;
+							li
+							{
+								margin-top:0px;
+							}
+						}
+					}
+				}
+				
+			}
+		}	
+		
+	}
+
+}
