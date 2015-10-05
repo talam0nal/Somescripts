@@ -1,0 +1,17 @@
+		<div style="background:red;position:fixed;top:0;left:0;padding:.3em;z-index:1;">
+			<span class="visible-sm">
+				-sm (tablet, vertical)
+			</span>
+
+			<span class="visible-md">
+				-md (tablet, horizontal)
+			</span>
+
+			<span class="visible-lg">
+				-lg (large screen)
+			</span>
+
+			<span class="visible-xs">
+				-xs (mobile phones)
+			</span>
+		</div>
