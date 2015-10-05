@@ -12,6 +12,6 @@
 			</span>
 
 			<span class="visible-xs">
-				-xs (mobile phones) test ett
+				-xs (mobile phones) test ett to master
 			</span>
 		</div>
