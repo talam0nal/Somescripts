@@ -12,6 +12,6 @@
 			</span>
 
 			<span class="visible-xs">
-				-xs (mobile phones)
+				-xs (mobile phones) test
 			</span>
 		</div>
