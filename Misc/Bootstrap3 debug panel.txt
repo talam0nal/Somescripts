@@ -1,3 +1,7 @@
+	if (location.hash=='#developer') {
+		$('#dev').show();
+	}	
+	
 		<div style="background:red;position:fixed;top:0;left:0;padding:.3em;z-index:1;">
 			<span class="visible-sm">
 				-sm (tablet, vertical)
